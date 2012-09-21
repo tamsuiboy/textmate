@@ -49,7 +49,7 @@ public:
 			tmp.insert((random() & 0xFFFFFF) - 0x7FFFFF);
 
 		std::vector<ssize_t> keys(tmp.begin(), tmp.end());
-		std::random_shuffle(beginof(keys), endof(keys));
+		std::random_shuffle(keys.begin(), keys.end());
 		iterate(key, keys)
 			map.set(*key, true);
 
@@ -58,7 +58,7 @@ public:
 		TS_ASSERT_EQUALS(tmp.size(), sorted.size());
 		TS_ASSERT(std::equal(tmp.begin(), tmp.end(), sorted.begin()));
 	
-		std::random_shuffle(beginof(keys), endof(keys));
+		std::random_shuffle(keys.begin(), keys.end());
 		for(size_t i = keys.size() >> 1; i < keys.size(); ++i)
 		{
 			map.remove(keys[i]);
@@ -79,7 +79,7 @@ public:
 		TS_ASSERT_EQUALS(keys.size(), sorted.size());
 		TS_ASSERT(std::equal(keys.begin(), keys.end(), sorted.begin()));
 
-		std::random_shuffle(beginof(sorted), endof(sorted));
+		std::random_shuffle(sorted.begin(), sorted.end());
 		iterate(key, sorted)
 			map.remove(*key);
 		TS_ASSERT(map.empty());
@@ -87,8 +87,8 @@ public:
 
 	static void test_child_count ()
 	{
-		static ssize_t const TestKeys[] = { 10, 20, 30, 40, 50 };
-		std::vector<ssize_t> keys(beginof(TestKeys), endof(TestKeys));
+		static std::vector<ssize_t> const TestKeys = { 10, 20, 30, 40, 50 };
+		std::vector<ssize_t> keys = TestKeys;
 		do {
 
 			std::next_permutation(keys.begin(), keys.end());
@@ -135,13 +135,13 @@ public:
 			TS_ASSERT_EQUALS(map.find(40).index(), 2);
 			TS_ASSERT_EQUALS(map.find(50).index(), 3);
 
-		} while(!std::equal(keys.begin(), keys.end(), beginof(TestKeys)));
+		} while(keys != TestKeys);
 	}
 
 	static void test_find ()
 	{
-		static ssize_t const TestKeys[] = { 10, 20, 30, 40, 50 };
-		std::vector<ssize_t> keys(beginof(TestKeys), endof(TestKeys));
+		static std::vector<ssize_t> const TestKeys = { 10, 20, 30, 40, 50 };
+		std::vector<ssize_t> keys = TestKeys;
 		do {
 
 			std::next_permutation(keys.begin(), keys.end());
@@ -167,13 +167,13 @@ public:
 			TS_ASSERT_EQUALS(map.find(40+1).index(), 5);
 			TS_ASSERT_EQUALS(map.find(50+1).index(), 5);
 
-		} while(!std::equal(keys.begin(), keys.end(), beginof(TestKeys)));
+		} while(keys != TestKeys);
 	}
 
 	static void test_lower_bound ()
 	{
-		static ssize_t const TestKeys[] = { 10, 20, 30, 40, 50 };
-		std::vector<ssize_t> keys(beginof(TestKeys), endof(TestKeys));
+		static std::vector<ssize_t> const TestKeys = { 10, 20, 30, 40, 50 };
+		std::vector<ssize_t> keys = TestKeys;
 		do {
 
 			std::next_permutation(keys.begin(), keys.end());
@@ -199,13 +199,13 @@ public:
 			TS_ASSERT_EQUALS(map.lower_bound(40+1).index(), 4);
 			TS_ASSERT_EQUALS(map.lower_bound(50+1).index(), 5);
 
-		} while(!std::equal(keys.begin(), keys.end(), beginof(TestKeys)));
+		} while(keys != TestKeys);
 	}
 
 	static void test_upper_bound ()
 	{
-		static ssize_t const TestKeys[] = { 10, 20, 30, 40, 50 };
-		std::vector<ssize_t> keys(beginof(TestKeys), endof(TestKeys));
+		static std::vector<ssize_t> const TestKeys = { 10, 20, 30, 40, 50 };
+		std::vector<ssize_t> keys = TestKeys;
 		do {
 
 			std::next_permutation(keys.begin(), keys.end());
@@ -231,7 +231,7 @@ public:
 			TS_ASSERT_EQUALS(map.upper_bound(40+1).index(), 4);
 			TS_ASSERT_EQUALS(map.upper_bound(50+1).index(), 5);
 
-		} while(!std::equal(keys.begin(), keys.end(), beginof(TestKeys)));
+		} while(keys != TestKeys);
 	}
 
 	void test_preserve ()
@@ -253,7 +253,7 @@ public:
 	{
 		iterate(row, TestKeys)
 		{
-			std::vector<ssize_t> keys(beginof(*row), endof(*row));
+			std::vector<ssize_t> keys(std::begin(*row), std::end(*row));
 			do {
 
 				indexed_map_t<bool> map;
@@ -274,7 +274,7 @@ public:
 
 				std::next_permutation(keys.begin(), keys.end());
 
-			} while(!std::equal(keys.begin(), keys.end(), beginof(*row)));
+			} while(!std::equal(keys.begin(), keys.end(), std::begin(*row)));
 		}
 	}
 
@@ -282,7 +282,7 @@ public:
 	{
 		iterate(row, TestKeys)
 		{
-			std::vector<ssize_t> keys(beginof(*row), endof(*row));
+			std::vector<ssize_t> keys(std::begin(*row), std::end(*row));
 			do {
 
 				indexed_map_t<bool> map;
@@ -303,7 +303,7 @@ public:
 
 				std::next_permutation(keys.begin(), keys.end());
 
-			} while(!std::equal(keys.begin(), keys.end(), beginof(*row)));
+			} while(!std::equal(keys.begin(), keys.end(), std::begin(*row)));
 		}
 	}
 

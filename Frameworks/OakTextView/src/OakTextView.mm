@@ -27,7 +27,6 @@
 #import <text/format.h>
 #import <text/utf16.h>
 #import <text/utf8.h>
-#import <oak/CocoaSTL.h>
 #import <oak/debug.h>
 
 OAK_DEBUG_VAR(OakTextView_TextInput);
@@ -654,8 +653,8 @@ static std::string shell_quote (std::vector<std::string> paths)
 	{
 		std::string const str = document->buffer().substr(range->min().index, range->max().index);
 		char const* base = str.data();
-		size_t from = utf16::advance(base, aRange.location) - base;
-		size_t to   = utf16::advance(base, aRange.location + aRange.length) - base;
+		size_t from = utf16::advance(base, aRange.location, base + str.size()) - base;
+		size_t to   = utf16::advance(base, aRange.location + aRange.length, base + str.size()) - base;
 		sel.push_back(ng::range_t(range->min() + from, range->min() + to));
 	}
 	editor->set_selections(sel);
@@ -761,7 +760,7 @@ static std::string shell_quote (std::vector<std::string> paths)
 {
 	std::string const text = editor->as_string();
 
-	size_t index = utf16::advance(text.data(), theRange.location) - text.data();
+	size_t index = utf16::advance(text.data(), theRange.location, text.data() + text.size()) - text.data();
 	NSRect rect = [self convertRect:layout->rect_at_index(index) toView:nil];
 	rect.origin = [[self window] convertBaseToScreen:rect.origin];
 	D(DBF_OakTextView_TextInput, bug("%s → %s\n", [NSStringFromRange(theRange) UTF8String], [NSStringFromRect(rect) UTF8String]););
@@ -1002,7 +1001,7 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 	static std::string const kRightArrow     = "\uF703";
 
 	// these never reach ‘keyDown:’ (tested on 10.5.8)
-	static std::string const SpecialKeys[] =
+	static std::set<std::string> const SpecialKeys =
 	{
 		"^" + kBackwardDelete, "^" + kForwardDelete,
 		"^"   + kUpArrow, "^"   + kDownArrow, "^"   + kLeftArrow, "^"   + kRightArrow,
@@ -1011,7 +1010,7 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 		"^~$" + kUpArrow, "^~$" + kDownArrow, "^~$" + kLeftArrow, "^~$" + kRightArrow,
 	};
 
-	if(oak::contains(beginof(SpecialKeys), endof(SpecialKeys), eventString))
+	if(SpecialKeys.find(eventString) != SpecialKeys.end())
 	{
 		plist::dictionary_t::const_iterator pair = KeyEventContext->find(eventString);
 		if(pair != KeyEventContext->end())
@@ -1641,8 +1640,8 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 
 - (BOOL)validateMenuItem:(NSMenuItem*)aMenuItem
 {
-	static SEL const RequiresSelection[] = { @selector(cut:), @selector(copy:), @selector(delete:), @selector(copySelectionToFindPboard:) };
-	if(oak::contains(beginof(RequiresSelection), endof(RequiresSelection), [aMenuItem action]))
+	static std::set<SEL> const RequiresSelection = { @selector(cut:), @selector(copy:), @selector(delete:), @selector(copySelectionToFindPboard:) };
+	if(RequiresSelection.find([aMenuItem action]) != RequiresSelection.end())
 		return [self hasSelection];
 	else if([aMenuItem action] == @selector(toggleShowInvisibles:))
 		[aMenuItem setState:[self showInvisibles] ? NSOnState : NSOffState];
@@ -1656,11 +1655,11 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 		[aMenuItem setState:[[NSString stringWithCxxString:document->buffer().spelling_language()] isEqualToString:[aMenuItem representedObject]] ? NSOnState : NSOffState];
 	else if([aMenuItem action] == @selector(takeWrapColumnFrom:))
 	{
-		static NSInteger const Presets[] = { NSWrapColumnWindowWidth, 40, 80 };
+		static std::set<NSInteger> const Presets = { NSWrapColumnWindowWidth, 40, 80 };
 		[aMenuItem setState:wrapColumn == [aMenuItem tag] ? NSOnState : NSOffState];
 		if([aMenuItem tag] == NSWrapColumnAskUser)
 		{
-			bool custom = !oak::contains(beginof(Presets), endof(Presets), wrapColumn);
+			bool custom = Presets.find(wrapColumn) == Presets.end();
 			[aMenuItem setTitle:custom ? [NSString stringWithFormat:@"Other (%d)…", wrapColumn] : @"Other…"];
 			[aMenuItem setState:custom ? NSOnState : NSOffState];
 		}
@@ -2314,7 +2313,7 @@ static void update_menu_key_equivalents (NSMenu* menu, action_to_key_t const& ac
 
 	if(commandDown && mouseDownClickCount == 1)
 	{
-		if(s.size() > 1 && std::find(beginof(s), endof(s), range.last()) != endof(s))
+		if(s.size() > 1 && std::find(s.begin(), s.end(), range.last()) != s.end())
 		{
 			ng::ranges_t newSel;
 			citerate(cur, s)

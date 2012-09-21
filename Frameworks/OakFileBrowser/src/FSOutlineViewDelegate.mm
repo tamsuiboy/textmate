@@ -4,7 +4,6 @@
 #import "ui/OFBPathInfoCell.h"
 #import <OakFoundation/NSString Additions.h>
 #import <OakAppKit/OakAppKit.h>
-#import <oak/CocoaSTL.h>
 #import <ns/ns.h>
 #import <io/path.h>
 #import <text/utf8.h>
@@ -63,8 +62,9 @@ static NSSet* ExpandedURLs (NSOutlineView* outlineView, FSItem* root, NSMutableS
 static NSSet* SelectedURLs (NSOutlineView* outlineView, FSItem* root)
 {
 	NSMutableSet* selectedURLs = [NSMutableSet set];
-	citerate(index, [outlineView selectedRowIndexes])
-		[selectedURLs addObject:[[outlineView itemAtRow:*index] url]];
+	NSIndexSet* indexSet = [outlineView selectedRowIndexes];
+	for(NSUInteger index = [indexSet firstIndex]; index != NSNotFound; index = [indexSet indexGreaterThanIndex:index])
+		[selectedURLs addObject:[[outlineView itemAtRow:index] url]];
 	[selectedURLs intersectSet:VisibleURLs(outlineView, root)];
 
 	return selectedURLs;
@@ -374,11 +374,11 @@ static BOOL MyEvent (NSEvent* anEvent, NSView* aView)
 {
 	if([anEvent window] == [aView window])
 	{
-		static std::string const ArrowLeftRight[] = { "~" + utf8::to_s(NSLeftArrowFunctionKey), "~" + utf8::to_s(NSRightArrowFunctionKey) };
+		static std::set<std::string> const ArrowLeftRight = { "~" + utf8::to_s(NSLeftArrowFunctionKey), "~" + utf8::to_s(NSRightArrowFunctionKey) };
 		if([anEvent type] == NSLeftMouseUp)
 			return NSMouseInRect([aView convertPoint:[anEvent locationInWindow] fromView:nil], [aView frame], [aView isFlipped]);
 		else if([anEvent type] == NSKeyDown && [[aView window] firstResponder] == aView)
-			return oak::contains(beginof(ArrowLeftRight), endof(ArrowLeftRight), to_s(anEvent));
+			return ArrowLeftRight.find(to_s(anEvent)) != ArrowLeftRight.end();
 	}
 	return NO;
 }

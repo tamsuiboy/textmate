@@ -2,7 +2,6 @@
 #import "NSImage Additions.h"
 #import <io/path.h>
 #import <scm/scm.h>
-#import <oak/CocoaSTL.h>
 
 // ========================
 // = Obtain Various Icons =
@@ -15,12 +14,12 @@ static NSImage* CustomIconForPath (NSString* path, struct stat const& buf)
 
 	std::multimap<ssize_t, NSString*> ordering;
 	NSDictionary* bindings = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass:[OakFileIconImage class]] pathForResource:@"bindings" ofType:@"plist"]];
-	iterate(pair, bindings)
+	for(NSString* key in bindings)
 	{
-		for(NSString* ext in pair->second)
+		for(NSString* ext in bindings[key])
 		{
 			if(ssize_t rank = path::rank([path UTF8String], [ext UTF8String]))
-				ordering.insert(std::make_pair(rank, pair->first));
+				ordering.insert(std::make_pair(rank, key));
 		}
 	}
 	return ordering.empty() ? nil : [NSImage imageNamed:ordering.begin()->second inSameBundleAsClass:[OakFileIconImage class]];

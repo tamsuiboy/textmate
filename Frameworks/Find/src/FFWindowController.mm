@@ -1,5 +1,4 @@
 #import "FFWindowController.h"
-#import <oak/CocoaSTL.h>
 #import <oak/oak.h>
 #import <OakFoundation/OakFoundation.h>
 #import <OakAppKit/OakAppKit.h>
@@ -20,6 +19,7 @@
 #import <ns/ns.h>
 #import <ns/attr_string.h>
 #import <OakAppKit/OakStatusBar.h>
+#import <text/utf8.h>
 #import "scan_path.h"
 #import "Strings.h"
 
@@ -328,9 +328,9 @@ struct operation_t
 	std::vector<std::string> res;
 
 	NSIndexSet* selectedRows = [findAllResultsOutlineView numberOfSelectedRows] == 0 ? [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [findAllResultsOutlineView numberOfRows])] : [findAllResultsOutlineView selectedRowIndexes];
-	iterate(it, selectedRows)
+	for(NSUInteger index = [selectedRows firstIndex]; index != NSNotFound; index = [selectedRows indexGreaterThanIndex:index])
 	{
-		FFMatch* item = [findAllResultsOutlineView itemAtRow:*it];
+		FFMatch* item = [findAllResultsOutlineView itemAtRow:index];
 		if([self outlineView:findAllResultsOutlineView isGroupItem:item])
 			continue;
 

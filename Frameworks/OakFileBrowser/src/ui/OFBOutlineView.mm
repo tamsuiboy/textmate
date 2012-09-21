@@ -5,7 +5,6 @@
 #import <text/utf8.h>
 #import <oak/debug.h>
 #import <oak/oak.h>
-#import <oak/CocoaSTL.h>
 
 @protocol OFBOutlineViewMenuDelegate
 - (NSMenu*)menuForOutlineView:(NSOutlineView*)anOutlineView;
@@ -162,8 +161,8 @@
 	if(draggedRows && [self.dataSource respondsToSelector:@selector(outlineView:draggedItems:endedWithOperation:)])
 	{
 		NSMutableArray* items = [NSMutableArray array];
-		iterate(index, draggedRows)
-			[items addObject:[self itemAtRow:*index]];
+		for(NSUInteger index = [draggedRows firstIndex]; index != NSNotFound; index = [draggedRows indexGreaterThanIndex:index])
+			[items addObject:[self itemAtRow:index]];
 		[(id <FSDataSourceDragSource>)self.dataSource outlineView:self draggedItems:items endedWithOperation:aDragOperation];
 	}
 	self.draggedRows = nil;

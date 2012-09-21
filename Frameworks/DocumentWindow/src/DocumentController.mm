@@ -32,7 +32,6 @@ namespace find_tags
 #import <OakAppKit/OakPasteboard.h>
 #import <HTMLOutput/HTMLOutput.h>
 #import <Find/Find.h>
-#import <oak/CocoaSTL.h>
 #import <text/utf8.h>
 #import <OakFilterList/OakFilterList.h>
 #import <OakFilterList/OakFileChooser.h>
@@ -1164,8 +1163,8 @@ OAK_DEBUG_VAR(DocumentController);
 	if(NSIndexSet* indexSet = [self tryObtainIndexSetFrom:sender])
 	{
 		std::vector<document::document_ptr> documents;
-		iterate(index, indexSet)
-			documents.push_back(*documentTabs[*index]);
+		for(NSUInteger index = [indexSet firstIndex]; index != NSNotFound; index = [indexSet indexGreaterThanIndex:index])
+			documents.push_back(*documentTabs[index]);
 		DocumentController* delegate = [[DocumentController alloc] initWithDocuments:documents];
 		[delegate showWindow:self];
 		[self closeTabsAtIndexes:indexSet quiet:YES];
